@@ -25,27 +25,6 @@ namespace MyAzureFunctionApp.Models
                 .HasOne(bc => bc.Category)
                 .WithMany(c => c.BookCategories)
                 .HasForeignKey(bc => bc.CategoryId);
-            
-            // Seed initial data
-            modelBuilder.Entity<Author>().HasData(
-                new Author { AuthorId = 1, Name = "Author 1" },
-                new Author { AuthorId = 2, Name = "Author 2" }
-            );
-
-            modelBuilder.Entity<Category>().HasData(
-                new Category { CategoryId = 1, Name = "Category 1" },
-                new Category { CategoryId = 2, Name = "Category 2" }
-            );
-
-            modelBuilder.Entity<Book>().HasData(
-                new Book { BookId = 1, Title = "Book 1", AuthorId = 1 },
-                new Book { BookId = 2, Title = "Book 2", AuthorId = 2 }
-            );
-
-            modelBuilder.Entity<BookCategory>().HasData(
-                new BookCategory { BookId = 1, CategoryId = 1 },
-                new BookCategory { BookId = 2, CategoryId = 2 }
-            );
         }
     }
 }
