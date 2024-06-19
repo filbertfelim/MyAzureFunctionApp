@@ -14,22 +14,50 @@ namespace MyAzureFunctionApp.Services
             _categoryRepository = categoryRepository;
         }
 
-        public async Task<Category> AddAsync(CategoryDto request)
+        public async Task<(Category, string)> AddAsync(CategoryDto request)
         {
+            var existingCategory = await _categoryRepository.GetByNameAsync(request.Name);
+            if (existingCategory != null)
+            {
+                return (null, "Category already exists.");
+            }
+
             var category = new Category { Name = request.Name };
-            return await _categoryRepository.AddAsync(category);
+            var addedCategory = await _categoryRepository.AddAsync(category);
+            return (addedCategory, null);
         }
 
-        public async Task<Category> UpdateAsync(int id, CategoryDto request)
+        public async Task<(Category, string)> UpdateAsync(int id, CategoryDto request)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
             {
-                return null;
+                return (null, "Category not found.");
+            }
+
+            var existingCategory = await _categoryRepository.GetByNameAsync(request.Name);
+            if (existingCategory != null && existingCategory.CategoryId != id)
+            {
+                return (null, "Category already exists.");
             }
 
             category.Name = request.Name;
-            return await _categoryRepository.UpdateAsync(category);
+            var updatedCategory = await _categoryRepository.UpdateAsync(category);
+            return (updatedCategory, null);
+        }
+
+        public async Task<Category> GetByIdAsync(int id)
+        {
+            return await _categoryRepository.GetByIdAsync(id);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var category = await _categoryRepository.GetByIdAsync(id);
+            if (category != null)
+            {
+                await _categoryRepository.DeleteAsync(id);
+            }
         }
     }
 }

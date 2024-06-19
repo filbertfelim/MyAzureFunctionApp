@@ -3,8 +3,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace MyAzureFunctionApp.Migrations
 {
     /// <inheritdoc />
@@ -81,42 +79,6 @@ namespace MyAzureFunctionApp.Migrations
                         principalTable: "Categories",
                         principalColumn: "CategoryId",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.InsertData(
-                table: "Authors",
-                columns: new[] { "AuthorId", "Name" },
-                values: new object[,]
-                {
-                    { 1, "Author 1" },
-                    { 2, "Author 2" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Categories",
-                columns: new[] { "CategoryId", "Name" },
-                values: new object[,]
-                {
-                    { 1, "Category 1" },
-                    { 2, "Category 2" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Books",
-                columns: new[] { "BookId", "AuthorId", "Title" },
-                values: new object[,]
-                {
-                    { 1, 1, "Book 1" },
-                    { 2, 2, "Book 2" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "BookCategories",
-                columns: new[] { "BookId", "CategoryId" },
-                values: new object[,]
-                {
-                    { 1, 1 },
-                    { 2, 2 }
                 });
 
             migrationBuilder.CreateIndex(

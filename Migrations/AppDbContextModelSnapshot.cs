@@ -36,18 +36,6 @@ namespace MyAzureFunctionApp.Migrations
                     b.HasKey("AuthorId");
 
                     b.ToTable("Authors");
-
-                    b.HasData(
-                        new
-                        {
-                            AuthorId = 1,
-                            Name = "Author 1"
-                        },
-                        new
-                        {
-                            AuthorId = 2,
-                            Name = "Author 2"
-                        });
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.Book", b =>
@@ -70,20 +58,6 @@ namespace MyAzureFunctionApp.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Books");
-
-                    b.HasData(
-                        new
-                        {
-                            BookId = 1,
-                            AuthorId = 1,
-                            Title = "Book 1"
-                        },
-                        new
-                        {
-                            BookId = 2,
-                            AuthorId = 2,
-                            Title = "Book 2"
-                        });
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.BookCategory", b =>
@@ -99,18 +73,6 @@ namespace MyAzureFunctionApp.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("BookCategories");
-
-                    b.HasData(
-                        new
-                        {
-                            BookId = 1,
-                            CategoryId = 1
-                        },
-                        new
-                        {
-                            BookId = 2,
-                            CategoryId = 2
-                        });
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.Category", b =>
@@ -128,18 +90,6 @@ namespace MyAzureFunctionApp.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("Categories");
-
-                    b.HasData(
-                        new
-                        {
-                            CategoryId = 1,
-                            Name = "Category 1"
-                        },
-                        new
-                        {
-                            CategoryId = 2,
-                            Name = "Category 2"
-                        });
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.Book", b =>

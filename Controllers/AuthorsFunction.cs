@@ -3,13 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using MyAzureFunctionApp.Models.DTOs;
 using MyAzureFunctionApp.Services;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
+using AutoMapper;
+using MyAzureFunctionApp.Models;
+using MyAzureFunctionApp.Validators;
 
 namespace MyAzureFunctionApp.Controllers
 {
@@ -17,56 +19,67 @@ namespace MyAzureFunctionApp.Controllers
     {
         private readonly IAuthorService _authorService;
         private readonly IValidator<AuthorDto> _validator;
+        private readonly IMapper _mapper;
 
-        public AuthorsFunction(IAuthorService authorService, IValidator<AuthorDto> validator)
+        public AuthorsFunction(IAuthorService authorService, IValidator<AuthorDto> validator, IMapper mapper)
         {
             _authorService = authorService;
             _validator = validator;
+            _mapper = mapper;
         }
 
         [Function("GetAuthors")]
         public async Task<IActionResult> GetAuthors(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors")] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors")] HttpRequest req)
         {
-            log.LogInformation("GetAuthors function processed a request.");
-
             var authors = await _authorService.GetAllAsync();
             return new OkObjectResult(new { Message = "Authors retrieved successfully.", Data = authors });
         }
 
         [Function("GetAuthorById")]
         public async Task<IActionResult> GetAuthorById(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors/{id}")] HttpRequest req,
-            int id,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors/{id}")] HttpRequest req, string id)
         {
-            log.LogInformation($"GetAuthorById function processed a request for ID: {id}");
-
-            var author = await _authorService.GetByIdAsync(id);
+            if (!int.TryParse(id, out int authorId) || authorId <= 0)
+            {
+                return new BadRequestObjectResult(new { Message = "Invalid ID format, ID should be a number." });
+            }
+            var author = await _authorService.GetByIdAsync(authorId);
             if (author == null)
             {
-                return new NotFoundObjectResult(new { Message = $"Author with ID {id} not found." });
+                return new NotFoundObjectResult(new { Message = $"Author with ID {authorId} not found." });
             }
-
             return new OkObjectResult(new { Message = "Author retrieved successfully.", Data = author });
         }
 
         [Function("CreateAuthor")]
         public async Task<IActionResult> CreateAuthor(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "authors")] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "authors")] HttpRequest req)
         {
-            log.LogInformation("CreateAuthor function processed a request.");
-
+            if (req.Body == null)
+            {
+                return new BadRequestObjectResult(new { Message = "Request body cannot be null." });
+            }
             AuthorDto data;
             try
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+                // Check if the JSON contains only the expected fields
+                if (!DtoJsonValidator.IsValidJsonStructure<AuthorDto>(requestBody))
+                {
+                    return new BadRequestObjectResult(new { Message = "Invalid request structure." });
+                }
+
                 data = JsonSerializer.Deserialize<AuthorDto>(requestBody, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+
+                if (data == null)
+                {
+                    return new BadRequestObjectResult(new { Message = "Invalid request body." });
+                }
             }
             catch (JsonException)
             {
@@ -80,27 +93,45 @@ namespace MyAzureFunctionApp.Controllers
                 return new BadRequestObjectResult(new { Message = "Validation failed.", Errors = errors });
             }
 
-            var createdAuthor = await _authorService.AddAsync(data);
+            data.Name = data.Name.Trim();
 
+            var author = _mapper.Map<AuthorDto>(data);
+            var createdAuthor = await _authorService.AddAsync(author);
             return new CreatedResult($"/authors/{createdAuthor.AuthorId}", new { Message = "Author created successfully.", Data = createdAuthor });
         }
 
         [Function("UpdateAuthor")]
         public async Task<IActionResult> UpdateAuthor(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "authors/{id}")] HttpRequest req,
-            int id,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "authors/{id}")] HttpRequest req, string id)
         {
-            log.LogInformation($"UpdateAuthor function processed a request for ID: {id}");
-
+            if (!int.TryParse(id, out int authorId) || authorId <= 0)
+            {
+                return new BadRequestObjectResult(new { Message = "Invalid ID format, ID should be a number." });
+            }
+            if (req.Body == null)
+            {
+                return new BadRequestObjectResult(new { Message = "Request body cannot be null." });
+            }
             AuthorDto data;
             try
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+                // Check if the JSON contains only the expected fields
+                if (!DtoJsonValidator.IsValidJsonStructure<AuthorDto>(requestBody))
+                {
+                    return new BadRequestObjectResult(new { Message = "Invalid request structure." });
+                }
+
                 data = JsonSerializer.Deserialize<AuthorDto>(requestBody, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+
+                if (data == null)
+                {
+                    return new BadRequestObjectResult(new { Message = "Invalid request body." });
+                }
             }
             catch (JsonException)
             {
@@ -114,10 +145,13 @@ namespace MyAzureFunctionApp.Controllers
                 return new BadRequestObjectResult(new { Message = "Validation failed.", Errors = errors });
             }
 
-            var updatedAuthor = await _authorService.UpdateAsync(id, data);
+            data.Name = data.Name.Trim();
+            
+            var author = _mapper.Map<AuthorDto>(data);
+            var updatedAuthor = await _authorService.UpdateAsync(authorId, author);
             if (updatedAuthor == null)
             {
-                return new NotFoundObjectResult(new { Message = $"Author with ID {id} not found." });
+                return new NotFoundObjectResult(new { Message = $"Author with ID {authorId} not found." });
             }
 
             return new OkObjectResult(new { Message = "Author updated successfully.", Data = updatedAuthor });
@@ -125,19 +159,19 @@ namespace MyAzureFunctionApp.Controllers
 
         [Function("DeleteAuthor")]
         public async Task<IActionResult> DeleteAuthor(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "authors/{id}")] HttpRequest req,
-            int id,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "authors/{id}")] HttpRequest req, string id)
         {
-            log.LogInformation($"DeleteAuthor function processed a request for ID: {id}");
-
-            var author = await _authorService.GetByIdAsync(id);
+            if (!int.TryParse(id, out int authorId) || authorId <= 0)
+            {
+                return new BadRequestObjectResult(new { Message = "Invalid ID format, ID should be a number." });
+            }
+            var author = await _authorService.GetByIdAsync(authorId);
             if (author == null)
             {
-                return new NotFoundObjectResult(new { Message = $"Author with ID {id} not found." });
+                return new NotFoundObjectResult(new { Message = $"Author with ID {authorId} not found." });
             }
 
-            await _authorService.DeleteAsync(id);
+            await _authorService.DeleteAsync(authorId);
 
             return new OkObjectResult(new { Message = "Author deleted successfully." });
         }

@@ -6,8 +6,8 @@ namespace MyAzureFunctionApp.Services
 {
     public interface ICategoryService : IService<Category>
     {
-        Task<Category> AddAsync(CategoryDto request);
-        Task<Category> UpdateAsync(int id, CategoryDto request);
+        Task<(Category, string)> AddAsync(CategoryDto request);
+        Task<(Category, string)> UpdateAsync(int id, CategoryDto request);
         Task<Category> GetByIdAsync(int id);
         Task DeleteAsync(int id);
     }

@@ -7,5 +7,6 @@ namespace MyAzureFunctionApp.Repositories
     {
         Task<Category> AddAsync(Category category);
         Task<Category> UpdateAsync(Category category);
+        Task<Category> GetByNameAsync(string name);
     }
 }

@@ -44,6 +44,7 @@ namespace MyAzureFunctionApp.Services
             {
                 await _authorRepository.DeleteAsync(id);
             }
+           
         }
     }
 }
