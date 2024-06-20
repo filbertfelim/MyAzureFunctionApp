@@ -11,26 +11,31 @@ using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
 using AutoMapper;
 using MyAzureFunctionApp.Validators;
+using Microsoft.Extensions.Configuration;
+using MyAzureFunctionApp.Helpers;
 
 namespace MyAzureFunctionApp.Controllers
 {
-    public class BooksFunction
+    public class BooksFunction : AuthenticatedFunctionBase
     {
         private readonly IBookService _bookService;
         private readonly IValidator<BookDto> _validator;
-        private readonly IMapper _mapper;
 
-        public BooksFunction(IBookService bookService, IValidator<BookDto> validator, IMapper mapper)
+        public BooksFunction(IBookService bookService, IValidator<BookDto> validator, IConfiguration configuration) : base(configuration)
         {
             _bookService = bookService;
             _validator = validator;
-            _mapper = mapper;
         }
 
         [Function("GetBooks")]
         public async Task<IActionResult> GetBooks(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "books")] HttpRequest req)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             var books = await _bookService.GetAllAsync();
             return new OkObjectResult(new { Message = "Books retrieved successfully.", Data = books });
         }
@@ -39,6 +44,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> GetBookById(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "books/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int bookId) || bookId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format." });
@@ -56,6 +66,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> CreateBook(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "books")] HttpRequest req)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (req.Body == null)
             {
                 return new BadRequestObjectResult(new { Message = "Request body cannot be null." });
@@ -87,10 +102,10 @@ namespace MyAzureFunctionApp.Controllers
                 return new BadRequestObjectResult(new { Message = "Invalid request structure." });
             }
 
-            ValidationResult validationResult = await _validator.ValidateAsync(data);
-            if (!validationResult.IsValid)
+            ValidationResult validResult = await _validator.ValidateAsync(data);
+            if (!validResult.IsValid)
             {
-                var errors = validationResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
+                var errors = validResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
                 return new BadRequestObjectResult(new { Message = "Validation failed.", Errors = errors });
             }
 
@@ -109,6 +124,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> UpdateBook(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "books/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int bookId) || bookId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format." });
@@ -145,10 +165,10 @@ namespace MyAzureFunctionApp.Controllers
                 return new BadRequestObjectResult(new { Message = "Invalid request structure." });
             }
 
-            ValidationResult validationResult = await _validator.ValidateAsync(data);
-            if (!validationResult.IsValid)
+            ValidationResult validResult = await _validator.ValidateAsync(data);
+            if (!validResult.IsValid)
             {
-                var errors = validationResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
+                var errors = validResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
                 return new BadRequestObjectResult(new { Message = "Validation failed.", Errors = errors });
             }
 
@@ -168,6 +188,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> DeleteBook(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "books/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int bookId) || bookId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format." });

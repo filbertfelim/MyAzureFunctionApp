@@ -11,16 +11,18 @@ using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
 using AutoMapper;
 using MyAzureFunctionApp.Validators;
+using MyAzureFunctionApp.Helpers;
+using Microsoft.Extensions.Configuration;
 
 namespace MyAzureFunctionApp.Controllers
 {
-    public class CategoriesFunction
+    public class CategoriesFunction : AuthenticatedFunctionBase
     {
         private readonly ICategoryService _categoryService;
         private readonly IValidator<CategoryDto> _validator;
         private readonly IMapper _mapper;
 
-        public CategoriesFunction(ICategoryService categoryService, IValidator<CategoryDto> validator, IMapper mapper)
+        public CategoriesFunction(ICategoryService categoryService, IValidator<CategoryDto> validator, IMapper mapper, IConfiguration configuration) : base(configuration)
         {
             _categoryService = categoryService;
             _validator = validator;
@@ -31,6 +33,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> GetCategories(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "categories")] HttpRequest req)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             var categories = await _categoryService.GetAllAsync();
             return new OkObjectResult(new { Message = "Categories retrieved successfully.", Data = categories });
         }
@@ -39,6 +46,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> GetCategoryById(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "categories/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int categoryId) || categoryId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format." });
@@ -56,6 +68,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> CreateCategory(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "categories")] HttpRequest req)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (req.Body == null)
             {
                 return new BadRequestObjectResult(new { Message = "Request body cannot be null." });
@@ -87,10 +104,10 @@ namespace MyAzureFunctionApp.Controllers
                 return new BadRequestObjectResult(new { Message = "Invalid request structure." });
             }
 
-            ValidationResult validationResult = await _validator.ValidateAsync(data);
-            if (!validationResult.IsValid)
+            ValidationResult validResult = await _validator.ValidateAsync(data);
+            if (!validResult.IsValid)
             {
-                var errors = validationResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
+                var errors = validResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
                 return new BadRequestObjectResult(new { Message = "Validation failed.", Errors = errors });
             }
 
@@ -110,6 +127,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> UpdateCategory(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "categories/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int categoryId) || categoryId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format." });
@@ -146,10 +168,10 @@ namespace MyAzureFunctionApp.Controllers
                 return new BadRequestObjectResult(new { Message = "Invalid request structure." });
             }
 
-            ValidationResult validationResult = await _validator.ValidateAsync(data);
-            if (!validationResult.IsValid)
+            ValidationResult validResult = await _validator.ValidateAsync(data);
+            if (!validResult.IsValid)
             {
-                var errors = validationResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
+                var errors = validResult.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
                 return new BadRequestObjectResult(new { Message = "Validation failed.", Errors = errors });
             }
 
@@ -170,6 +192,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> DeleteCategory(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "categories/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int categoryId) || categoryId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format." });

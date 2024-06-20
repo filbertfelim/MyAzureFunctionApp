@@ -9,9 +9,6 @@ using MyAzureFunctionApp.Services;
 using MyAzureFunctionApp.Validators;
 using FluentValidation;
 using MyAzureFunctionApp.Models.DTOs;
-using AutoMapper;
-using System;
-using System.IO;
 using System.Text.Json.Serialization;
 
 var host = new HostBuilder()

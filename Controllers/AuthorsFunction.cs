@@ -10,18 +10,19 @@ using FluentValidation.Results;
 using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
 using AutoMapper;
-using MyAzureFunctionApp.Models;
 using MyAzureFunctionApp.Validators;
+using Microsoft.Extensions.Configuration;
+using MyAzureFunctionApp.Helpers;
 
 namespace MyAzureFunctionApp.Controllers
 {
-    public class AuthorsFunction
+    public class AuthorsFunction : AuthenticatedFunctionBase
     {
         private readonly IAuthorService _authorService;
         private readonly IValidator<AuthorDto> _validator;
         private readonly IMapper _mapper;
 
-        public AuthorsFunction(IAuthorService authorService, IValidator<AuthorDto> validator, IMapper mapper)
+        public AuthorsFunction(IAuthorService authorService, IValidator<AuthorDto> validator, IMapper mapper, IConfiguration configuration) : base(configuration)
         {
             _authorService = authorService;
             _validator = validator;
@@ -32,6 +33,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> GetAuthors(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors")] HttpRequest req)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             var authors = await _authorService.GetAllAsync();
             return new OkObjectResult(new { Message = "Authors retrieved successfully.", Data = authors });
         }
@@ -40,6 +46,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> GetAuthorById(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int authorId) || authorId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format, ID should be a number." });
@@ -56,6 +67,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> CreateAuthor(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "authors")] HttpRequest req)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (req.Body == null)
             {
                 return new BadRequestObjectResult(new { Message = "Request body cannot be null." });
@@ -104,6 +120,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> UpdateAuthor(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "authors/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int authorId) || authorId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format, ID should be a number." });
@@ -161,6 +182,11 @@ namespace MyAzureFunctionApp.Controllers
         public async Task<IActionResult> DeleteAuthor(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "authors/{id}")] HttpRequest req, string id)
         {
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
             if (!int.TryParse(id, out int authorId) || authorId <= 0)
             {
                 return new BadRequestObjectResult(new { Message = "Invalid ID format, ID should be a number." });
