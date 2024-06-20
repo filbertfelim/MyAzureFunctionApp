@@ -10,6 +10,7 @@ using MyAzureFunctionApp.Validators;
 using FluentValidation;
 using MyAzureFunctionApp.Models.DTOs;
 using System.Text.Json.Serialization;
+using Microsoft.ApplicationInsights.Extensibility;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -22,6 +23,11 @@ var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
         var configuration = context.Configuration;
+        services.AddApplicationInsightsTelemetryWorkerService();
+        services.Configure<TelemetryConfiguration>(config =>
+        {
+            config.ConnectionString = configuration["Values:APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        });
         var connectionString = configuration["Values:PostgreSqlConnectionString"];
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
@@ -51,6 +57,10 @@ var host = new HostBuilder()
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.WriteIndented = true;
             });
+    })
+    .ConfigureLogging(logging =>
+    {
+        logging.AddApplicationInsights();
     })
     .Build();
 
