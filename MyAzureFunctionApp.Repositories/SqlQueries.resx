@@ -118,11 +118,11 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="GetAllAuthors" xml:space="preserve">
-    <value>        SELECT A."AuthorId", A."Name", B."BookId", B."Title"        FROM "Authors" A        LEFT JOIN "Books" B ON A."AuthorId" = B."AuthorId";      </value>
+    <value>        SELECT A."AuthorId", A."Name", B."BookId", B."Title", B."ImagePath"       FROM "Authors" A        LEFT JOIN "Books" B ON A."AuthorId" = B."AuthorId";      </value>
     <comment/>
   </data>
   <data name="GetAuthorById" xml:space="preserve">
-    <value>        SELECT A."AuthorId", A."Name", B."BookId", B."Title"        FROM "Authors" A        LEFT JOIN "Books" B ON A."AuthorId" = B."AuthorId"        WHERE A."AuthorId" = @Id;      </value>
+    <value>        SELECT A."AuthorId", A."Name", B."BookId", B."Title", B."ImagePath"        FROM "Authors" A        LEFT JOIN "Books" B ON A."AuthorId" = B."AuthorId"        WHERE A."AuthorId" = @Id;      </value>
     <comment/>
   </data>
   <data name="AddAuthor" xml:space="preserve">
@@ -139,7 +139,7 @@
   </data>
   <data name="GetAllBooks" xml:space="preserve">
     <value>
-    SELECT B."BookId", B."Title", B."AuthorId", 
+    SELECT B."BookId", B."Title", B."AuthorId", B."ImagePath",
        A."AuthorId", A."Name",
        BC."BookId", BC."CategoryId",
        C."CategoryId", C."Name"
@@ -152,7 +152,7 @@ LEFT JOIN "Categories" C ON BC."CategoryId" = C."CategoryId";
   </data>
   <data name="GetBookById" xml:space="preserve">
     <value>
-    SELECT B."BookId", B."Title", B."AuthorId", 
+    SELECT B."BookId", B."Title", B."AuthorId", B."ImagePath",
        A."AuthorId", A."Name",
        BC."BookId", BC."CategoryId",
        C."CategoryId", C."Name"
@@ -166,9 +166,9 @@ LEFT JOIN "Categories" C ON BC."CategoryId" = C."CategoryId";
   </data>
   <data name="AddBook" xml:space="preserve">
     <value>
-    INSERT INTO "Books" ("Title", "AuthorId") 
-    VALUES (@Title, @AuthorId) 
-    RETURNING "BookId", "Title", "AuthorId";
+    INSERT INTO "Books" ("Title", "AuthorId", "ImagePath") 
+    VALUES (@Title, @AuthorId, '')
+    RETURNING "BookId", "Title", "AuthorId", "ImagePath";
     </value>
     <comment/>
   </data>
@@ -187,6 +187,14 @@ LEFT JOIN "Categories" C ON BC."CategoryId" = C."CategoryId";
     WHERE "BookId" = @Id;
     </value>
     <comment/>
+  </data>
+  <data name="UpdateBookImagePath" xml:space="preserve">
+      <value>
+      UPDATE "Books" 
+      SET "ImagePath" = @ImagePath 
+      WHERE "BookId" = @BookId;
+      </value>
+      <comment/>
   </data>
   <data name="GetAllCategories" xml:space="preserve">
     <value>SELECT * FROM "Categories";</value>

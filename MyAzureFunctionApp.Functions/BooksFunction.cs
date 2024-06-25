@@ -1,6 +1,3 @@
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using MyAzureFunctionApp.Models.DTOs;
@@ -9,11 +6,11 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
-using AutoMapper;
 using MyAzureFunctionApp.Validators;
 using Microsoft.Extensions.Configuration;
 using MyAzureFunctionApp.Helpers;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
 
 namespace MyAzureFunctionApp.Controllers
 {
@@ -251,6 +248,57 @@ namespace MyAzureFunctionApp.Controllers
 
             _logger.LogInformation("DeleteBook: Successfully deleted book with ID: {Id}", bookId);
             return new OkObjectResult(new { Message = "Book deleted successfully." });
+        }
+
+        [Function("UploadBookImage")]
+        public async Task<IActionResult> UploadBookImage(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "books/{id}/uploadImage")] HttpRequest req, string id)
+        {
+            _logger.LogInformation("UploadBookImage: Processing request to upload book image with ID: {Id}", id);
+
+            var validationResult = ValidateToken(req);
+            if (validationResult != null)
+            {
+                _logger.LogWarning("UploadBookImage: Authorization failed: {Message}", ((JsonResult)validationResult).Value);
+                return validationResult;
+            }
+
+            if (!int.TryParse(id, out int bookId) || bookId <= 0)
+            {
+                _logger.LogWarning("UploadBookImage: Invalid ID format: {Id}", id);
+                return new BadRequestObjectResult(new { Message = "Invalid ID format." });
+            }
+
+            var book = await _bookService.GetByIdAsync(bookId);
+            if (book == null)
+            {
+                _logger.LogWarning("UploadBookImage: Book not found: {Id}", bookId);
+                return new NotFoundObjectResult(new { Message = $"Book with ID {bookId} not found." });
+            }
+
+            if (req.Form.Files.Count == 0)
+            {
+                _logger.LogWarning("UploadBookImage: No file uploaded");
+                return new BadRequestObjectResult(new { Message = "No file uploaded" });
+            }
+
+            var file = req.Form.Files[0];
+            if (file.Length > 2 * 1024 * 1024)
+            {
+                _logger.LogWarning("UploadBookImage: File size exceeds 2 MB");
+                return new BadRequestObjectResult(new { Message = "File size exceeds 2 MB" });
+            }
+
+            try
+            {
+                var relativePath = await _bookService.UploadBookImageAsync(bookId, file);
+                return new OkObjectResult(new { FilePath = relativePath });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadBookImage: Error uploading image for book: {Id}", bookId);
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }

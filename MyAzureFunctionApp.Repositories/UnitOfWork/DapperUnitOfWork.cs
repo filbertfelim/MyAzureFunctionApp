@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MyAzureFunctionApp.Repositories
 {
-    public class DapperUnitOfWork : IDapperUnitOfWork
+    public class DapperUnitOfWork : IDapperUnitOfWork, IDisposable
     {
         private readonly IDbConnection _connection;
         private IDbTransaction _transaction;

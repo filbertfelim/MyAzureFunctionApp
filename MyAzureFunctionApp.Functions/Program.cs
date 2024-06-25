@@ -11,8 +11,6 @@ using FluentValidation;
 using MyAzureFunctionApp.Models.DTOs;
 using System.Text.Json.Serialization;
 using Microsoft.ApplicationInsights.Extensibility;
-using MyAzureFunctionApp.Repositories.Dapper;
-using Microsoft.Extensions.Options;
 using System.Data;
 using Npgsql;
 

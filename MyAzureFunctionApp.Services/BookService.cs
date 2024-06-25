@@ -3,16 +3,46 @@ using System.Threading.Tasks;
 using MyAzureFunctionApp.Models;
 using MyAzureFunctionApp.Models.DTOs;
 using MyAzureFunctionApp.Repositories;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace MyAzureFunctionApp.Services
 {
     public class BookService : Service<Book>, IBookService
     {
-        private readonly IDapperUnitOfWork _unitOfWork;
+        private readonly IDapperUnitOfWork _unitOfWork; 
 
         public BookService(IDapperUnitOfWork unitOfWork) : base(unitOfWork.Books)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task<string> UploadBookImageAsync(int bookId, IFormFile imageFile)
+        {
+            var _storagePath = Path.Combine(Environment.CurrentDirectory);
+            var imagePath = Path.Combine(_storagePath, $"{bookId}.jpg");
+
+            using var image = Image.Load(imageFile.OpenReadStream());
+            image.Mutate(x => x.Resize(new ResizeOptions { Mode = ResizeMode.Max, Size = new Size(1000, 1000) }));
+
+            await using var fileStream = new FileStream(imagePath, FileMode.Create);
+            var encoder = new JpegEncoder
+            {
+                Quality = 90
+            };
+            image.Save(fileStream, encoder);
+
+            var relativePath = $"/{bookId}.jpg";
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            await _unitOfWork.Books.UpdateImagePathAsync(bookId, relativePath);
+
+            await _unitOfWork.CommitAsync(); 
+            
+            return relativePath;
         }
 
         public async Task<(Book, string)> AddAsync(BookDto request)
@@ -43,7 +73,8 @@ namespace MyAzureFunctionApp.Services
                 {
                     Title = request.Title,
                     AuthorId = request.AuthorId,
-                    BookCategories = categories
+                    BookCategories = categories,
+                    ImagePath = ""
                 };
 
                 var addedBook = await _unitOfWork.Books.AddAsync(book);
@@ -54,6 +85,8 @@ namespace MyAzureFunctionApp.Services
                     bookCategory.BookId = addedBook.BookId;
                     await _unitOfWork.BookCategories.AddAsync(bookCategory);
                 }
+
+                book.BookId = addedBook.BookId;
 
                 await _unitOfWork.CommitAsync();        
                 return (book, null);
@@ -101,7 +134,6 @@ namespace MyAzureFunctionApp.Services
 
                 await _unitOfWork.BookCategories.DeleteByBookIdAsync(book.BookId);
 
-                await _unitOfWork.Books.UpdateAsync(book);
                 foreach (var bookCategory in categories)
                 {
                     bookCategory.BookId = book.BookId;
@@ -109,6 +141,9 @@ namespace MyAzureFunctionApp.Services
                 }
 
                 await _unitOfWork.Books.UpdateAsync(book);
+
+                book.BookCategories = categories;
+
                 await _unitOfWork.CommitAsync();
                 return (book, null);
             }
@@ -147,5 +182,7 @@ namespace MyAzureFunctionApp.Services
                 throw;
             }
         }
+
+        
     }
 }

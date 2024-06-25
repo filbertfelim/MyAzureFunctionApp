@@ -151,5 +151,15 @@ namespace MyAzureFunctionApp.Repositories.Dapper
                 await _connection.ExecuteAsync(CreateCommand(sql, new { Id = id }));
             });
         }
+
+        public async Task UpdateImagePathAsync(int bookId, string imagePath)
+        {
+            var sql = SqlQueries.GetQuery("UpdateBookImagePath");
+
+            await WithRetryPolicy(async () =>
+            {
+                await _connection.ExecuteAsync(CreateCommand(sql, new { BookId = bookId, ImagePath = imagePath }));
+            });
+        }
     }
 }

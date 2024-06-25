@@ -14,6 +14,11 @@ namespace MyAzureFunctionApp.Repositories
             _context = context;
         }
 
+        public async Task UpdateImagePathAsync(int bookId, string imagePath)
+        {
+            //
+        }
+
         public async Task<IEnumerable<Book>> GetAllAsync()
         {
             return await _context.Books.Include(b => b.Author)
