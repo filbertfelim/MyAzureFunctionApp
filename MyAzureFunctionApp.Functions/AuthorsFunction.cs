@@ -11,6 +11,10 @@ using MyAzureFunctionApp.Validators;
 using Microsoft.Extensions.Configuration;
 using MyAzureFunctionApp.Helpers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using System.Net;
+using Microsoft.OpenApi.Models;
 
 namespace MyAzureFunctionApp.Controllers
 {
@@ -30,6 +34,10 @@ namespace MyAzureFunctionApp.Controllers
             _logger = logger;
         }
 
+        
+        [OpenApiOperation(operationId: "GetAuthors", tags: new[] { "Authors" })]
+        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(IEnumerable<AuthorDto>), Description = "The OK response")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetAuthors")]
         public async Task<IActionResult> GetAuthors(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors")] HttpRequest req)
@@ -46,6 +54,12 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Authors retrieved successfully.", Data = authors });
         }
 
+        
+        [OpenApiOperation(operationId: "GetAuthorById", tags: new[] { "Authors" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the author")]
+        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(AuthorDto), Description = "The OK response")]
+        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.NotFound, Description = "Author not found")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetAuthorById")]
         public async Task<IActionResult> GetAuthorById(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "authors/{id}")] HttpRequest req, string id)
