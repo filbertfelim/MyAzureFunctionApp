@@ -11,6 +11,9 @@ using Microsoft.Extensions.Configuration;
 using MyAzureFunctionApp.Helpers;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.OpenApi.Models;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 
 namespace MyAzureFunctionApp.Controllers
 {
@@ -27,6 +30,9 @@ namespace MyAzureFunctionApp.Controllers
             _logger = logger;
         }
 
+
+        [OpenApiOperation(operationId: "GetBooks", tags: new[] { "Books" })]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetBooks")]
         public async Task<IActionResult> GetBooks(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "books")] HttpRequest req)
@@ -46,6 +52,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Books retrieved successfully.", Data = books });
         }
 
+        [OpenApiOperation(operationId: "GetBookById", tags: new[] { "Books" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the book")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetBookById")]
         public async Task<IActionResult> GetBookById(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "books/{id}")] HttpRequest req, string id)
@@ -76,6 +85,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Book retrieved successfully.", Data = book });
         }
 
+        [OpenApiOperation(operationId: "CreateBook", tags: new[] { "Books" })]
+        [OpenApiRequestBody("application/json", typeof(BookDto), Description = "The book data to create")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("CreateBook")]
         public async Task<IActionResult> CreateBook(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "books")] HttpRequest req)
@@ -144,6 +156,10 @@ namespace MyAzureFunctionApp.Controllers
             return new CreatedResult($"/books/{createdBook.BookId}", new { Message = "Book created successfully.", Data = createdBook });
         }
 
+        [OpenApiOperation(operationId: "UpdateBook", tags: new[] { "Books" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the book to update")]
+        [OpenApiRequestBody("application/json", typeof(BookDto), Description = "The book data to update")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("UpdateBook")]
         public async Task<IActionResult> UpdateBook(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "books/{id}")] HttpRequest req, string id)
@@ -218,6 +234,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Book updated successfully.", Data = updatedBook });
         }
 
+        [OpenApiOperation(operationId: "DeleteBook", tags: new[] { "Books" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the book to delete")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("DeleteBook")]
         public async Task<IActionResult> DeleteBook(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "books/{id}")] HttpRequest req, string id)
@@ -249,7 +268,16 @@ namespace MyAzureFunctionApp.Controllers
             _logger.LogInformation("DeleteBook: Successfully deleted book with ID: {Id}", bookId);
             return new OkObjectResult(new { Message = "Book deleted successfully." });
         }
+        
+        public class MultiPartFormDataModel
+        {
+            public byte[] FileUpload { get; set; }
+        }
 
+        [OpenApiOperation(operationId: "UploadBookImage", tags: new[] { "Books" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the book")]
+        [OpenApiRequestBody(contentType: "multipart/form-data", bodyType: typeof(MultiPartFormDataModel), Required = true, Description = "The image file to upload")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("UploadBookImage")]
         public async Task<IActionResult> UploadBookImage(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "books/{id}/uploadImage")] HttpRequest req, string id)

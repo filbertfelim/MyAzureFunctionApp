@@ -11,6 +11,9 @@ using MyAzureFunctionApp.Validators;
 using MyAzureFunctionApp.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.OpenApi.Models;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 
 namespace MyAzureFunctionApp.Controllers
 {
@@ -30,6 +33,8 @@ namespace MyAzureFunctionApp.Controllers
             _logger = logger;
         }
 
+        [OpenApiOperation(operationId: "GetCategories", tags: new[] { "Categories" })]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetCategories")]
         public async Task<IActionResult> GetCategories(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "categories")] HttpRequest req)
@@ -49,6 +54,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Categories retrieved successfully.", Data = categories });
         }
 
+        [OpenApiOperation(operationId: "GetCategoryById", tags: new[] { "Categories" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the category")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetCategoryById")]
         public async Task<IActionResult> GetCategoryById(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "categories/{id}")] HttpRequest req, string id)
@@ -79,6 +87,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Category retrieved successfully.", Data = category });
         }
 
+        [OpenApiOperation(operationId: "CreateCategory", tags: new[] { "Categories" })]
+        [OpenApiRequestBody("application/json", typeof(CategoryDto), Description = "The category data to create")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("CreateCategory")]
         public async Task<IActionResult> CreateCategory(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "categories")] HttpRequest req)
@@ -148,6 +159,10 @@ namespace MyAzureFunctionApp.Controllers
             return new CreatedResult($"/categories/{createdCategory.CategoryId}", new { Message = "Category created successfully.", Data = createdCategory });
         }
 
+        [OpenApiOperation(operationId: "UpdateCategory", tags: new[] { "Categories" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the category to update")]
+        [OpenApiRequestBody("application/json", typeof(CategoryDto), Description = "The category data to update")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("UpdateCategory")]
         public async Task<IActionResult> UpdateCategory(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "categories/{id}")] HttpRequest req, string id)
@@ -223,6 +238,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Category updated successfully.", Data = updatedCategory });
         }
 
+        [OpenApiOperation(operationId: "DeleteCategory", tags: new[] { "Categories" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the category to delete")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("DeleteCategory")]
         public async Task<IActionResult> DeleteCategory(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "categories/{id}")] HttpRequest req, string id)

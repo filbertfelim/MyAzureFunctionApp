@@ -18,7 +18,7 @@
   },
   "extensions": {
     "OpenApi": {
-      "Version": "v2",
+      "Version": "v3",
       "Info": {
         "Title": "My Azure Function API",
         "Description": "API documentation for My Azure Function App",

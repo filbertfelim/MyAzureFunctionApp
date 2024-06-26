@@ -36,7 +36,6 @@ namespace MyAzureFunctionApp.Controllers
 
         
         [OpenApiOperation(operationId: "GetAuthors", tags: new[] { "Authors" })]
-        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(IEnumerable<AuthorDto>), Description = "The OK response")]
         [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetAuthors")]
         public async Task<IActionResult> GetAuthors(
@@ -57,8 +56,6 @@ namespace MyAzureFunctionApp.Controllers
         
         [OpenApiOperation(operationId: "GetAuthorById", tags: new[] { "Authors" })]
         [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the author")]
-        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(AuthorDto), Description = "The OK response")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.NotFound, Description = "Author not found")]
         [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("GetAuthorById")]
         public async Task<IActionResult> GetAuthorById(
@@ -86,6 +83,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Author retrieved successfully.", Data = author });
         }
 
+        [OpenApiOperation(operationId: "CreateAuthor", tags: new[] { "Authors" })]
+        [OpenApiRequestBody("application/json", typeof(AuthorDto), Description = "The author data to create")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("CreateAuthor")]
         public async Task<IActionResult> CreateAuthor(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "authors")] HttpRequest req)
@@ -147,6 +147,10 @@ namespace MyAzureFunctionApp.Controllers
             return new CreatedResult($"/authors/{createdAuthor.AuthorId}", new { Message = "Author created successfully.", Data = createdAuthor });
         }
 
+        [OpenApiOperation(operationId: "UpdateAuthor", tags: new[] { "Authors" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the author to update")]
+        [OpenApiRequestBody("application/json", typeof(AuthorDto), Description = "The author data to update")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("UpdateAuthor")]
         public async Task<IActionResult> UpdateAuthor(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "authors/{id}")] HttpRequest req, string id)
@@ -219,6 +223,9 @@ namespace MyAzureFunctionApp.Controllers
             return new OkObjectResult(new { Message = "Author updated successfully.", Data = updatedAuthor });
         }
 
+        [OpenApiOperation(operationId: "DeleteAuthor", tags: new[] { "Authors" })]
+        [OpenApiParameter(name: "id", In = ParameterLocation.Path, Required = true, Type = typeof(int), Description = "The ID of the author to delete")]
+        [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey, Scheme =  OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", In = OpenApiSecurityLocationType.Header, Name = "Authorization")]
         [Function("DeleteAuthor")]
         public async Task<IActionResult> DeleteAuthor(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "authors/{id}")] HttpRequest req, string id)
