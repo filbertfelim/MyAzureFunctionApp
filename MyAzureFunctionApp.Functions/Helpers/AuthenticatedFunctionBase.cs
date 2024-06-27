@@ -17,7 +17,7 @@ namespace MyAzureFunctionApp.Helpers
             _logger = logger;
         }
 
-        protected IActionResult ValidateToken(HttpRequest req)
+        protected virtual IActionResult ValidateToken(HttpRequest req)
         {
             var authHeader = req.Headers["Authorization"].FirstOrDefault();
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))

@@ -291,17 +291,16 @@ namespace MyAzureFunctionApp.Controllers
                 return validationResult;
             }
 
+            if (string.IsNullOrEmpty(req.ContentType) || !req.ContentType.Contains("multipart/form-data"))
+            {
+                _logger.LogWarning("UploadBookImage: Content-Type is not multipart/form-data");
+                return new BadRequestObjectResult(new { Message = "Content-Type must be multipart/form-data." });
+            }
+
             if (!int.TryParse(id, out int bookId) || bookId <= 0)
             {
                 _logger.LogWarning("UploadBookImage: Invalid ID format: {Id}", id);
                 return new BadRequestObjectResult(new { Message = "Invalid ID format." });
-            }
-
-            var book = await _bookService.GetByIdAsync(bookId);
-            if (book == null)
-            {
-                _logger.LogWarning("UploadBookImage: Book not found: {Id}", bookId);
-                return new NotFoundObjectResult(new { Message = $"Book with ID {bookId} not found." });
             }
 
             if (req.Form.Files.Count == 0)
@@ -315,6 +314,13 @@ namespace MyAzureFunctionApp.Controllers
             {
                 _logger.LogWarning("UploadBookImage: File size exceeds 2 MB");
                 return new BadRequestObjectResult(new { Message = "File size exceeds 2 MB" });
+            }
+
+            var book = await _bookService.GetByIdAsync(bookId);
+            if (book == null)
+            {
+                _logger.LogWarning("UploadBookImage: Book not found: {Id}", bookId);
+                return new NotFoundObjectResult(new { Message = $"Book with ID {bookId} not found." });
             }
 
             try
