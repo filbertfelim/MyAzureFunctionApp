@@ -15,15 +15,5 @@
       "Microsoft": "Warning",
       "Worker": "Trace"
     }
-  },
-  "extensions": {
-    "OpenApi": {
-      "Version": "v3",
-      "Info": {
-        "Title": "My Azure Function API",
-        "Description": "API documentation for My Azure Function App",
-        "Version": "1.0.0"
-      }
-    }
   }
 }

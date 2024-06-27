@@ -14,7 +14,6 @@ using Microsoft.ApplicationInsights.Extensibility;
 using System.Data;
 using Npgsql;
 using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Extensions;
-using Microsoft.OpenApi.Models;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker =>
@@ -74,33 +73,6 @@ var host = new HostBuilder()
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.WriteIndented = true;
             });
-        services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "My Azure Function API", Version = "v1" });
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "bearer",
-                BearerFormat = "JWT"
-            });
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    new string[] {}
-                }
-            });
-        });
     }) 
     .ConfigureLogging(logging =>
     {

@@ -32,23 +32,7 @@
           presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
           plugins: [SwaggerUIBundle.plugins.DownloadUrl],
           layout: "StandaloneLayout",
-          requestInterceptor: (req) => {
-            if (req.loadSpec) return req;
-            const authToken = document.querySelector(
-              'input[type="text"][name="Authorization"]'
-            ).value;
-            if (authToken && !authToken.startsWith("Bearer ")) {
-              req.headers["Authorization"] = `Bearer ${authToken}`;
-            }
-            return req;
-          },
         });
-        const authInput = document.querySelector(
-          'input[type="text"][name="Authorization"]'
-        );
-        if (authInput) {
-          authInput.placeholder = "Bearer <your-token>";
-        }
       };
     </script>
   </body>
