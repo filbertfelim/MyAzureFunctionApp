@@ -12,7 +12,7 @@ namespace MyAzureFunctionApp.Models.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Authors",
+                name: "Author",
                 columns: table => new
                 {
                     AuthorId = table.Column<int>(type: "integer", nullable: false)
@@ -21,11 +21,11 @@ namespace MyAzureFunctionApp.Models.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Authors", x => x.AuthorId);
+                    table.PrimaryKey("PK_Author", x => x.AuthorId);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Categories",
+                name: "Category",
                 columns: table => new
                 {
                     CategoryId = table.Column<int>(type: "integer", nullable: false)
@@ -34,11 +34,11 @@ namespace MyAzureFunctionApp.Models.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Categories", x => x.CategoryId);
+                    table.PrimaryKey("PK_Category", x => x.CategoryId);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Books",
+                name: "Book",
                 columns: table => new
                 {
                     BookId = table.Column<int>(type: "integer", nullable: false)
@@ -49,17 +49,17 @@ namespace MyAzureFunctionApp.Models.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Books", x => x.BookId);
+                    table.PrimaryKey("PK_Book", x => x.BookId);
                     table.ForeignKey(
-                        name: "FK_Books_Authors_AuthorId",
+                        name: "FK_Book_Author_AuthorId",
                         column: x => x.AuthorId,
-                        principalTable: "Authors",
+                        principalTable: "Author",
                         principalColumn: "AuthorId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookCategories",
+                name: "BookCategory",
                 columns: table => new
                 {
                     BookId = table.Column<int>(type: "integer", nullable: false),
@@ -67,46 +67,46 @@ namespace MyAzureFunctionApp.Models.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BookCategories", x => new { x.BookId, x.CategoryId });
+                    table.PrimaryKey("PK_BookCategory", x => new { x.BookId, x.CategoryId });
                     table.ForeignKey(
-                        name: "FK_BookCategories_Books_BookId",
+                        name: "FK_BookCategory_Book_BookId",
                         column: x => x.BookId,
-                        principalTable: "Books",
+                        principalTable: "Book",
                         principalColumn: "BookId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_BookCategories_Categories_CategoryId",
+                        name: "FK_BookCategory_Category_CategoryId",
                         column: x => x.CategoryId,
-                        principalTable: "Categories",
+                        principalTable: "Category",
                         principalColumn: "CategoryId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BookCategories_CategoryId",
-                table: "BookCategories",
-                column: "CategoryId");
+                name: "IX_Book_AuthorId",
+                table: "Book",
+                column: "AuthorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Books_AuthorId",
-                table: "Books",
-                column: "AuthorId");
+                name: "IX_BookCategory_CategoryId",
+                table: "BookCategory",
+                column: "CategoryId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "BookCategories");
+                name: "BookCategory");
 
             migrationBuilder.DropTable(
-                name: "Books");
+                name: "Book");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Category");
 
             migrationBuilder.DropTable(
-                name: "Authors");
+                name: "Author");
         }
     }
 }

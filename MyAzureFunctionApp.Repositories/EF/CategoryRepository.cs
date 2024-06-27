@@ -16,41 +16,41 @@ namespace MyAzureFunctionApp.Repositories
 
         public async Task<IEnumerable<Category>> GetAllAsync()
         {
-            return await _context.Categories.Include(c => c.BookCategories)
+            return await _context.Category.Include(c => c.BookCategories)
                                             .ThenInclude(bc => bc.Book)
                                             .ToListAsync();
         }
 
         public async Task<Category> GetByIdAsync(int id)
         {
-            return await _context.Categories.Include(c => c.BookCategories)
+            return await _context.Category.Include(c => c.BookCategories)
                                             .ThenInclude(bc => bc.Book)
                                             .FirstOrDefaultAsync(c => c.CategoryId == id);
         }
 
         public async Task<Category> GetByNameAsync(string name)
         {
-            return await _context.Categories.FirstOrDefaultAsync(c => c.Name == name);
+            return await _context.Category.FirstOrDefaultAsync(c => c.Name == name);
         }
 
         public async Task<Category> AddAsync(Category category)
         {
-            _context.Categories.Add(category);
+            _context.Category.Add(category);
             return category;
         }
 
         public async Task<Category> UpdateAsync(Category category)
         {
-            _context.Categories.Update(category);
+            _context.Category.Update(category);
             return category;
         }
 
         public async Task DeleteAsync(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _context.Category.FindAsync(id);
             if (category != null)
             {
-                _context.Categories.Remove(category);
+                _context.Category.Remove(category);
             }
         }
     }

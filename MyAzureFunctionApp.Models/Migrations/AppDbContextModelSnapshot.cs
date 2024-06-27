@@ -35,7 +35,7 @@ namespace MyAzureFunctionApp.Models.Migrations
 
                     b.HasKey("AuthorId");
 
-                    b.ToTable("Authors");
+                    b.ToTable("Author");
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.Book", b =>
@@ -61,7 +61,7 @@ namespace MyAzureFunctionApp.Models.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Books");
+                    b.ToTable("Book");
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.BookCategory", b =>
@@ -76,7 +76,7 @@ namespace MyAzureFunctionApp.Models.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("BookCategories");
+                    b.ToTable("BookCategory");
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.Category", b =>
@@ -93,7 +93,7 @@ namespace MyAzureFunctionApp.Models.Migrations
 
                     b.HasKey("CategoryId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Category");
                 });
 
             modelBuilder.Entity("MyAzureFunctionApp.Models.Book", b =>

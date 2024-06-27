@@ -21,7 +21,7 @@ namespace MyAzureFunctionApp.Repositories
 
         public async Task<IEnumerable<Book>> GetAllAsync()
         {
-            return await _context.Books.Include(b => b.Author)
+            return await _context.Book.Include(b => b.Author)
                                        .Include(b => b.BookCategories)
                                        .ThenInclude(bc => bc.Category)
                                        .ToListAsync();
@@ -29,7 +29,7 @@ namespace MyAzureFunctionApp.Repositories
 
         public async Task<Book> GetByIdAsync(int id)
         {
-            return await _context.Books.Include(b => b.Author)
+            return await _context.Book.Include(b => b.Author)
                                        .Include(b => b.BookCategories)
                                        .ThenInclude(bc => bc.Category)
                                        .FirstOrDefaultAsync(b => b.BookId == id);
@@ -37,22 +37,22 @@ namespace MyAzureFunctionApp.Repositories
 
         public async Task<Book> AddAsync(Book book)
         {
-            _context.Books.Add(book);
+            _context.Book.Add(book);
             return book;
         }
 
         public async Task<Book> UpdateAsync(Book book)
         {
-            _context.Books.Update(book);
+            _context.Book.Update(book);
             return book;
         }
 
         public async Task DeleteAsync(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _context.Book.FindAsync(id);
             if (book != null)
             {
-                _context.Books.Remove(book);
+                _context.Book.Remove(book);
             }
         }
     }
